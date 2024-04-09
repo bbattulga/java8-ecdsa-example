@@ -1,16 +1,15 @@
 package com.dsolutions.diplom.java8ecdsa;
 
 import com.starkbank.ellipticcurve.*;
-import com.starkbank.ellipticcurve.PrivateKey;
-import com.starkbank.ellipticcurve.PublicKey;
-import com.starkbank.ellipticcurve.Signature;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.Security;
 import java.util.Arrays;
 
-public class Main {
+public class MainCopy {
 
     static Curve p384Curve = new Curve(
                 new BigInteger("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffff0000000000000000fffffffc".replace("0x", ""), 16),
@@ -42,30 +41,23 @@ public class Main {
         final PublicKey publicKey = PublicKey.fromPem(publicKeyPem);
 
         String rawMsg = "{\"DEGREE_NUMBER\":\"D202400649\",\"PRIMARY_IDENTIFIER_NUMBER\":\"ха87060111\",\"INSTITUTION_ID\":35623,\"INSTITUTION_NAME\":\"ШУТИС /Шинжлэх ухаан технологийн их сургууль/\",\"EDUCATION_LEVEL_NAME\":\"Бакалаврын боловсрол\",\"EDUCATION_FIELD_CODE\":\"061304\",\"EDUCATION_FIELD_NAME\":\"Мэдээллийн технологи\",\"TOTAL_GPA\":3.6,\"LAST_NAME\":\"Цолмон\",\"FIRST_NAME\":\"Баяр\",\"CONFER_YEAR_NAME\":\"2023-2024 хичээлийн жил\"}";
-        String hash = bytesToHex(MessageDigest.getInstance("SHA-256").digest(rawMsg.getBytes(StandardCharsets.UTF_8)));
-        System.out.println(bytesToHex(MessageDigest.getInstance("SHA-256-BYTES").digest(hash.getBytes(StandardCharsets.UTF_8))));
-        System.out.println(bytesToHex(MessageDigest.getInstance("SHA-256").digest(rawMsg.getBytes(StandardCharsets.UTF_8))));
+        String hash = "31ea30a51a59297a6471ee45afbc35627cf01263b4478f7f10ddffe88085a173";
+
+        final MessageDigest md = MessageDigest.getInstance("CustomAlgorithm");
+        final byte[] r = md.digest(hash.getBytes());
+        System.out.println("digest:");
+        System.out.println(new String(r, StandardCharsets.UTF_8));
+
         // Generate Signature
-        Signature signature = Ecdsa.sign(hash, privateKey, MessageDigest.getInstance("SHA-256-BYTES"));
+        System.out.println(new String(MessageDigest.getInstance("SHA-256").digest(rawMsg.getBytes())));
+        Signature signature = Ecdsa.sign(rawMsg, privateKey);
 
         // Verify if signature is valid
-        boolean verified = Ecdsa.verify(hash, signature, publicKey, MessageDigest.getInstance("SHA-256-BYTES")) ;
+        boolean verified = Ecdsa.verify(rawMsg, signature, publicKey) ;
 
         // Return the signature verification status
         System.out.println("Message: " + hash);
         System.out.println("Signature: " + signature.toBase64());
         System.out.println("Verified: " + verified);
-    }
-
-    private static String bytesToHex(byte[] hash) {
-        StringBuilder hexString = new StringBuilder(2 * hash.length);
-        for (byte b : hash) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
     }
 }
